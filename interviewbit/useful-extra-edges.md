@@ -118,58 +118,60 @@ value and keep iterating on the auxillary roads.
 ### Editorial
   
 ```cpp
-int path(vector<vector<pair<int,int>>> &adj,int s, int d){
+int dijkstra(vector<vector<pair<int,int>>> &adj,int src, int dest){
     int n = adj.size();
     vector<int> cost(n+1, INT_MAX);
-    cost[s] = 0;
+    cost[src] = 0;
     
     vector<int> vis(n+1, false);
     
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
-    pq.push({0, s});
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;//min heap
+    pq.push({0, src});
     
-    while(!pq.empty()){
-        auto curr = pq.top();
-        pq.pop();
+    while(pq.size()){
+        auto curr = pq.top();pq.pop();
         
         int u = curr.second;
         int parentCost = curr.first;
-        if(u == d)return parentCost;
+        if(u == dest){return parentCost;}
         
-        if(vis[u])continue;
+        if(vis[u]){continue;}
         vis[u] = true;
         
-        for(auto child : adj[u]){
+        for(auto &child : adj[u]){
             int v = child.second;
             int childCost = child.first;
-            
+//cost to reach src->v node is not less than parent and child cost then update and push in queue
             if(cost[v] > parentCost + childCost){
                 cost[v] = parentCost + childCost;
                 pq.push({cost[v], v});
             }
         }
-        
     }
     
     return INT_MAX;
-    
 }
 
-int Solution::solve(int A, vector<vector<int> > &B, int C, int D, vector<vector<int> > &E) {
+int Solution::solve(int n, vector<vector<int> > &ed, int src, int dest, vector<vector<int> > &extra) {
+    vector<vector<pair<int, int>>> adj(n+2);//adjacency list to store edges
+
+    for(auto &x : ed)//given edges it is directed
+    {adj[x[0]].push_back({x[2], x[1]});}
     
-    vector<vector<pair<int, int>>> adj(A+2, vector<pair<int,int>>());
-    for(auto x : B)
-        adj[x[0]].push_back({x[2], x[1]});
-    
-    int ans = INT_MAX;
-    for(int i=0; i<E.size(); i++){
-        adj[E[i][0]].push_back({ E[i][2], E[i][1] });
-        ans = min(ans, path(adj, C, D));
-        adj[E[i][0]].pop_back();
-        
-        adj[E[i][1]].push_back({ E[i][2], E[i][0] });
-        ans = min(ans, path(adj, C, D));
-        adj[E[i][1]].pop_back();
+    int ans = INT_MAX;//minimizing ans
+
+    //try all extra edges to get min distance by calling dijkstra 2 times
+    for(int i=0;i<extra.size();i++)
+    {
+        //using ith extra edge for direction src to dest 
+        adj[extra[i][0]].push_back({ extra[i][2], extra[i][1] });//inseting edge
+        ans = min(ans, dijkstra(adj, src, dest));//using ith extra edge we call dijkstra to get min distance and updating it
+        adj[extra[i][0]].pop_back();//removing edge
+
+        //using ith extra edge for direction dest to src 
+        adj[extra[i][1]].push_back({ extra[i][2], extra[i][0] });//inserting edges
+        ans = min(ans, dijkstra(adj, src, dest));//using ith extra edge we call dijkstra to get min distance and updating it
+        adj[extra[i][1]].pop_back();//removing edge
     }
     
     return ans == INT_MAX? -1 : ans;
