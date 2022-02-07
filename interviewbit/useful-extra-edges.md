@@ -270,7 +270,68 @@ int Solution::solve(int n, vector<vector<int> > &ed, int src, int dest, vector<v
 
 }
 ```
+## Mine
+```cpp
+int dijkstra(int n,vector<vector<pair<int,int>>> &adj,int src, int dest){
+    vector<int> cost(n+1, INT_MAX);//cost to reach upto each node from src
+    cost[src] = 0;
+    
+    vector<int> vis(n+1, false);
+    
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;//min heap
+    pq.push({0, src});
+    
+    while(pq.size()){
+        auto curr = pq.top();pq.pop();
+        
+        int u = curr.second;
+        int parentCost = curr.first;
+        if(u == dest){return parentCost;}
+        
+        if(vis[u]){continue;}
+        vis[u] = true;
+        
+        for(auto &child : adj[u]){
+            int v = child.second;
+            int childCost = child.first;
+    //cost to reach src->v node is not less than parent and child cost then update and push in queue
+            if(cost[v] > parentCost + childCost){
+                cost[v] = parentCost + childCost;
+                pq.push({cost[v], v});
+            }
+        }
+    }
+    
+    return INT_MAX;
+}
 
+int Solution::solve(int n, vector<vector<int> > &ed, int src, int dest, vector<vector<int> > &extra) {
+    vector<vector<pair<int, int>>> adj(n+1);//adjacency list to store edges
+
+    for(auto &x : ed)//given edges it is directed
+    {adj[x[0]].push_back({x[2], x[1]});}
+    
+    int ans = INT_MAX;//minimizing ans
+
+    //try all extra edges as bidirectional edge to get min distance by calling dijkstra 
+    for(auto &x:extra)
+    {
+        if(x[0]>n||x[1]>n){continue;}//if extra nodes present in extra edges dont add those edges
+        
+        adj[x[0]].push_back({ x[2], x[1]});//using each extra edge for in forward direction
+        adj[x[1]].push_back({ x[2],x[0]});//using each extra edge in reversed direction
+        
+        //using extra edge as bidirectional we call dijkstra to get min distance and updating it
+        ans = min(ans, dijkstra(n,adj, src, dest));
+        
+        adj[x[0]].pop_back();//removing forward edge
+        adj[x[1]].pop_back();//removing backward edge
+    }
+    
+    return ans == INT_MAX? -1 : ans;
+}
+
+```
 
   
   
