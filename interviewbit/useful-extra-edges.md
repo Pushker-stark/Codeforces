@@ -120,7 +120,7 @@ value and keep iterating on the auxillary roads.
 ```cpp
 int dijkstra(vector<vector<pair<int,int>>> &adj,int src, int dest){
     int n = adj.size();
-    vector<int> cost(n+1, INT_MAX);
+    vector<int> cost(n+1, INT_MAX);//cost to reach upto each node from src
     cost[src] = 0;
     
     vector<int> vis(n+1, false);
